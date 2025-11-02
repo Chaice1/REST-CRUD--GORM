@@ -17,66 +17,62 @@
 -   **Gin Gonic**: Веб-фреймворк
 -   **GORM**: ORM для работы с базой данных
 -   **PostgreSQL**: Реляционная база данных
--   **Docker**: Контейнеризация приложения и базы данных
 
-## Быстрый старт
+## Требования для запуска
 
-Для запуска проекта вам понадобится установленный [Git](https://git-scm.com/) и [Docker](https://www.docker.com/) с Docker Compose.
+Перед запуском проекта убедитесь, что на вашем компьютере установлены:
+
+-   [Go](https://go.dev/doc/install) (версия 1.18 или выше)
+-   [Git](https://git-scm.com/downloads)
+-   [PostgreSQL](https://www.postgresql.org/download/) (версия 12 или выше)
+
+## Инструкция по запуску
 
 ### 1. Клонирование репозитория
+
+Откройте терминал и выполните следующую команду:
 
 ```bash
 git clone https://github.com/Chaice1/REST-CRUD--GORM.git
 cd REST-CRUD--GORM
 ```
 
-### 2. Настройка базы данных
+### 2. Настройка базы данных PostgreSQL
 
-Проект использует базу данных PostgreSQL. Самый простой способ запустить её — использовать Docker. Создайте в корне проекта файл `docker-compose.yml` со следующим содержимым:
+1.  **Установите и запустите PostgreSQL** на вашем компьютере.
+2.  **Создайте базу данных.** Вы можете использовать стандартную базу `postgres` или создать новую.
+3.  **Убедитесь, что данные для подключения** (хост, порт, имя пользователя, пароль и имя базы) соответствуют тем, что указаны в файле `main.go`.
 
-```yaml
-version: '3.8'
-services:
-  db:
-    image: postgres:14-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
+По умолчанию в коде прописаны следующие параметры:
+-   **Хост:** `localhost`
+-   **Порт:** `5432`
+-   **Пользователь:** `postgres`
+-   **Пароль:** `postgres`
+-   **Имя БД:** `postgres`
 
-volumes:
-  db_data:
+Если ваши данные отличаются, измените строку `dsn` в файле `main.go`:
+```go
+// main.go
+dsn := "host=ВАШ_ХОСТ user=ВАШ_ПОЛЬЗОВАТЕЛЬ password=ВАШ_ПАРОЛЬ dbname=ВАША_БД port=ВАШ_ПОРТ sslmode=disable"
 ```
-
-Теперь запустите контейнер с базой данных:
-
-```bash
-docker-compose up -d
-```
-Эта команда поднимет PostgreSQL сервер, доступный по адресу `localhost:5432`, с данными для подключения, которые уже прописаны в коде.
 
 ### 3. Запуск приложения
 
-После запуска базы данных можно запустить Go-приложение.
+Теперь, когда база данных настроена и запущена, можно запустить Go-сервер.
 
 ```bash
-# Установка зависимостей
+# Установка всех необходимых зависимостей
 go mod tidy
 
-# Запуск сервера
+# Запуск приложения
 go run main.go
 ```
 
-Сервер будет запущен по адресу `http://localhost:8080`.
+После выполнения последней команды вы увидите в терминале сообщение о том, что сервер запущен. Он будет доступен по адресу `http://localhost:8080`.
 
 ## Документация по API
 
-Ниже описаны все доступные эндпоинты.
+Вы можете взаимодействовать с API с помощью таких инструментов, как [Postman](https://www.postman.com/), [Insomnia](https://insomnia.rest/) или просто `curl`.
 
 ---
 
@@ -85,41 +81,16 @@ go run main.go
 
 -   **Метод:** `GET`
 -   **URL:** `/books`
--   **Ответ (200 OK):**
-    ```json
-    [
-        {
-            "ID": 1,
-            "Author": "George Orwell",
-            "Title": "1984",
-            "Description": "A dystopian novel."
-        },
-        {
-            "ID": 2,
-            "Author": "J.R.R. Tolkien",
-            "Title": "The Lord of the Rings",
-            "Description": "A high-fantasy novel."
-        }
-    ]
-    ```
+-   **Ответ (200 OK):** Массив JSON-объектов с книгами.
 
 ---
 
 ### **`GET /books/:id`**
-Получает одну книгу по её уникальному идентификатору.
+Получает одну книгу по её ID.
 
 -   **Метод:** `GET`
 -   **URL:** `/books/1`
--   **Ответ (200 OK):**
-    ```json
-    {
-        "ID": 1,
-        "Author": "George Orwell",
-        "Title": "1984",
-        "Description": "A dystopian novel."
-    }
-    ```
--   **Ответ (404 Not Found):** Если книга не найдена.
+-   **Ответ (200 OK):** JSON-объект с данными книги.
 
 ---
 
@@ -133,18 +104,10 @@ go run main.go
     {
         "author": "Aldous Huxley",
         "title": "Brave New World",
-        "description": "Another dystopian novel."
+        "description": "A dystopian novel."
     }
     ```
--   **Ответ (201 Created):**
-    ```json
-    {
-        "ID": 3,
-        "Author": "Aldous Huxley",
-        "Title": "Brave New World",
-        "Description": "Another dystopian novel."
-    }
-    ```
+-   **Ответ (201 Created):** JSON-объект созданной книги.
 
 ---
 
@@ -161,15 +124,7 @@ go run main.go
         "description": "A classic dystopian social science fiction novel and cautionary tale."
     }
     ```
--   **Ответ (200 OK):**
-    ```json
-    {
-        "ID": 1,
-        "Author": "George Orwell",
-        "Title": "1984",
-        "Description": "A classic dystopian social science fiction novel and cautionary tale."
-    }
-    ```
+-   **Ответ (200 OK):** JSON-объект обновленной книги.
 
 ---
 
@@ -178,11 +133,4 @@ go run main.go
 
 -   **Метод:** `DELETE`
 -   **URL:** `/books/1`
--   **Ответ (204 No Content):** Пустое тело ответа, означающее успешное удаление.
-
-## Возможные улучшения
-
--   **Конфигурация:** Вынести строку подключения к базе данных и порт сервера в переменные окружения (например, с использованием библиотеки `viper` или `godotenv`).
--   **Валидация:** Добавить валидацию входящих данных (например, чтобы поля `author` и `title` не были пустыми).
--   **Слоистая архитектура:** Разделить код на слои (handler, service, repository) для лучшей читаемости и поддерживаемости.
--   **Обработка ошибок:** Реализовать более детальную обработку ошибок и возвращать осмысленные сообщения.
+-   **Ответ (204 No Content):** Пустое тело ответа.
